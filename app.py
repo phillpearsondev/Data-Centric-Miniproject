@@ -27,7 +27,7 @@ def get_tasks():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        # Check if username already exists in the database
+        # Check if username already exists in the database.
         existing_user = mongo.db.users.find_one(
             {"username": request.form.get("username").lower()})
         if existing_user:
@@ -40,9 +40,10 @@ def register():
         }
         mongo.db.users.insert_one(register)
 
-        # Put the new user into 'session' cookie
+        # Put the new user into 'session' cookie.
         session["user"] = request.form.get("username").lower()
         flash("Registration Successful!")
+        return render_template("profile.html", username=session["user"])
     return render_template("register.html")
 
 
@@ -59,6 +60,7 @@ def login():
                 existing_user["password"], request.form.get("password")):
                     session["user"] = request.form.get("username").lower()
                     flash("Welcome, {}".format(request.form.get("username")))
+                    return render_template("profile.html", username=session["user"])
             else:
                 # Invalid Password match.
                 flash("Incorrect Username and/or Password!")
@@ -69,6 +71,13 @@ def login():
             flash("Incorrect Username and/or Password!")
             return redirect(url_for("login"))
     return render_template("login.html")
+
+
+@app.route("/profile/<username>", methods=["GET", "POST"])
+def profile(username):
+    # Grab the session users username from the database.
+    username = mongo.db.users.find_one({"username": session["user"]})["username"]
+    return render_template("profile.html", username=username)
 
 if __name__ == "__main__":
     app.run(host=os.environ.get("IP"),
