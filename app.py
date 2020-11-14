@@ -73,11 +73,22 @@ def login():
     return render_template("login.html")
 
 
+@app.route("/logout")
+def logout():
+    # Remove the user from session cookies
+    flash("You have been logged out!")
+    session.pop("user")
+    return redirect("login")
+
 @app.route("/profile/<username>", methods=["GET", "POST"])
 def profile(username):
     # Grab the session users username from the database.
     username = mongo.db.users.find_one({"username": session["user"]})["username"]
-    return render_template("profile.html", username=username)
+
+    if session["user"]:
+        return render_template("profile.html", username=username)
+    
+    return redirect(url_for("login"))
 
 if __name__ == "__main__":
     app.run(host=os.environ.get("IP"),
